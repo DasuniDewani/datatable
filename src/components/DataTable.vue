@@ -3,45 +3,52 @@
         <div v-if="isLoading" class="loading">Loading...</div>
         <div v-else>
             <SearchBar v-model:searchQuery="searchQuery"/>
-            <table>
-                <thead>
-                    <tr>
-                        <th>
-                            <div class="header-container">
-                            <span>ID</span>
-                            <div class="sort-buttons">
-                                <button @click="sortBy('id', 'asc')">&#9650;</button>
-                                <button @click="sortBy('id', 'desc')">&#9660;</button>
+            <div v-if="filteredComments.length > 0">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>
+                                <div class="header-container">
+                                <span>ID</span>
+                                <div class="sort-buttons">
+                                    <button @click="sortBy('id', 'asc')">&#9650;</button>
+                                    <button @click="sortBy('id', 'desc')">&#9660;</button>
+                                </div>
                             </div>
-                        </div>
-                        </th>
-                        <th>Name</th>
-                        <th>
-                            <div class="header-container">
-                            <span>Email</span>
-                            <div class="sort-buttons">
-                                <button @click="sortBy('email', 'asc')">&#9650;</button>
-                                <button @click="sortBy('email', 'desc')">&#9660;</button>
+                            </th>
+                            <th>Name</th>
+                            <th>
+                                <div class="header-container">
+                                <span>Email</span>
+                                <div class="sort-buttons">
+                                    <button @click="sortBy('email', 'asc')">&#9650;</button>
+                                    <button @click="sortBy('email', 'desc')">&#9660;</button>
+                                </div>
                             </div>
-                        </div>
-                        </th>
-                        <th>Body</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="comment in filteredComments" :key="comment.id">
-                            <td>{{ comment.id }}</td>  
-                            <td v-html="highlightText(comment.name)"></td>
-                            <td v-html="highlightText(comment.email)"></td>
-                            <td v-html="highlightText(comment.body)"></td>
-                        <td>
-                            <button class="delete-btn" @click="deleteComment(comment.id)">Delete</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            <TablePagination/>
+                            </th>
+                            <th>Body</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="comment in paginatedComments" :key="comment.id">
+                                <td>{{ comment.id }}</td>  
+                                <td v-html="highlightText(comment.name)"></td>
+                                <td v-html="highlightText(comment.email)"></td>
+                                <td v-html="highlightText(comment.body)"></td>
+                            <td>
+                                <button class="delete-btn" @click="deleteComment(comment.id)">Delete</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <TablePagination
+                    :totalItems="filteredComments.length"
+                    @pageChange="onPageChange"
+                    @itemsPerPageChange="onItemsPerPageChange"
+                />
+            </div>
+            <div v-else class="message">No result found</div>
         </div>
     </div>
 </template>
@@ -58,10 +65,18 @@
             SearchBar,
             TablePagination
         },
-        setup() {
+        props: {
+            initialItemsPerPage: {
+                type: Number,
+                default: 10
+            }
+        },
+        setup(props) {
             const isLoading = ref(true);
             const comments = ref([]);
             const searchQuery = ref('');
+            const currentPage = ref(1);
+            const itemsPerPage = ref(props.initialItemsPerPage);
 
             const fetchComments = async() => {
                 try {
@@ -99,6 +114,15 @@
             );
             });
 
+            const paginatedComments = computed(() => {
+                if (itemsPerPage.value === 0) {
+                    return filteredComments.value;
+                } else {
+                    const start = (currentPage.value - 1) * itemsPerPage.value;
+                    const end = start + itemsPerPage.value;
+                    return filteredComments.value.slice(start, end);
+                }
+            });
             const sortBy = (key, order) => {
                 comments.value.sort((a, b) => {
                     if (order === 'asc') {
@@ -109,6 +133,15 @@
                 });
             };
 
+            const onPageChange = (page) => {
+                currentPage.value = page;
+            };
+
+            const onItemsPerPageChange = (count) => {
+                itemsPerPage.value = count;
+                currentPage.value = 1;
+            };
+
             onMounted(fetchComments);
 
             return {
@@ -117,8 +150,11 @@
                 searchQuery,
                 highlightText,
                 filteredComments,
+                paginatedComments,
                 deleteComment,
-                sortBy
+                sortBy,
+                onPageChange,
+                onItemsPerPageChange
             }
         }
     }
@@ -129,7 +165,7 @@
 .loading {
     text-align: center;
     font-size: 20px;
-    margin: 20px 0;
+    margin: 20px 60px;
 }
 
 table {
