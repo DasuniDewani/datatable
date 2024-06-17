@@ -114,15 +114,6 @@
             );
             });
 
-            const paginatedComments = computed(() => {
-                if (itemsPerPage.value === 0) {
-                    return filteredComments.value;
-                } else {
-                    const start = (currentPage.value - 1) * itemsPerPage.value;
-                    const end = start + itemsPerPage.value;
-                    return filteredComments.value.slice(start, end);
-                }
-            });
             const sortBy = (key, order) => {
                 comments.value.sort((a, b) => {
                     if (order === 'asc') {
@@ -132,6 +123,16 @@
                     }
                 });
             };
+            
+            const paginatedComments = computed(() => {
+                if (itemsPerPage.value === 0) {
+                    return filteredComments.value;
+                } else {
+                    const start = (currentPage.value - 1) * itemsPerPage.value;
+                    const end = start + itemsPerPage.value;
+                    return filteredComments.value.slice(start, end);
+                }
+            });
 
             const onPageChange = (page) => {
                 currentPage.value = page;
