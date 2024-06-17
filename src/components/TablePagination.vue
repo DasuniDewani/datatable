@@ -59,11 +59,10 @@ export default {
             }
         };
 
-        const changeRowsPerPage = (option) => {
-            emit('itemsPerPageChange', option);
-            if (option === 0) {
-                currentPage.value = 1;
-            }
+        const changeRowsPerPage = (option) => {                 
+            itemsPerPage.value = option;
+            currentPage.value = 1;        
+            emit('itemsPerPageChange', option);            
         };
 
         watch(itemsPerPage, (newVal) => {
