@@ -39,7 +39,6 @@ export default {
         const rowOptions = ref([10, 15, 20]);
 
         const totalPages = computed(() => {
-        console.log(itemsPerPage.value);
         if (itemsPerPage.value === 0) {
             return 1;
         }
@@ -60,14 +59,10 @@ export default {
             }
         };
 
-        const changeRowsPerPage = (option) => {
-            if(option === 0) {
-                itemsPerPage.value = 0;
-            }
-            emit('itemsPerPageChange', option);
-            if (option === 0) {
-                currentPage.value = 1;
-            }
+        const changeRowsPerPage = (option) => {                 
+            itemsPerPage.value = option;
+            currentPage.value = 1;        
+            emit('itemsPerPageChange', option);            
         };
 
         watch(itemsPerPage, (newVal) => {
